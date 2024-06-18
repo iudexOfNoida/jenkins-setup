@@ -17,3 +17,26 @@ jobs:
         JENKINS_JOB_NAME: ${{ secrets.JENKINS_JOB_NAME }}
         JENKINS_JOB_TOKEN: ${{ secrets.JENKINS_JOB_TOKEN }}
       run: curl -X POST $JENKINS_URL/job/$JENKINS_JOB_NAME/build --user $JENKINS_USER:$JENKINS_API_TOKEN
+      
+    - name: Wait for Jenkins Job Completion
+      id: wait-for-jenkins
+      env:
+        JENKINS_URL: ${{ secrets.JENKINS_URL }}
+        JENKINS_USER: ${{ secrets.JENKINS_USER }}
+        JENKINS_API_TOKEN: ${{ secrets.JENKINS_API_TOKEN }}
+        JENKINS_JOB_NAME: ${{ secrets.JENKINS_JOB_NAME }}
+      run: |
+        echo "Waiting for Jenkins job to complete..."
+        JENKINS_BUILD_URL="$JENKINS_URL/job/$JENKINS_JOB_NAME/lastBuild/api/json"
+        while : ; do
+          response=$(curl -s --user $JENKINS_USER:$JENKINS_API_TOKEN $JENKINS_BUILD_URL)
+          result=$(echo $response | jq -r '.result')
+          if [ "$result" != "null" ]; then
+            echo "Jenkins build completed with status: $result"
+            break
+          fi
+          sleep 15
+        done
+        echo "::set-output name=result::$result"
+        echo "::set-output name=jenkins_build_url::$JENKINS_URL/job/$JENKINS_JOB_NAME/lastBuild"
+
