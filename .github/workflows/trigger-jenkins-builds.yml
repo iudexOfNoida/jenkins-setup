@@ -1,44 +1,111 @@
-# name: Trigger Jenkins Build on PR
+# # name: Trigger Jenkins Build on PR
+
+# # on:
+# #   pull_request:
+# #     types: [opened, synchronize, reopened]
+
+# # jobs:
+# #   trigger_jenkins_build:
+# #     runs-on: ubuntu-latest
+
+# #     steps:
+# #     - name: Trigger Jenkins Job
+# #       env:
+# #         JENKINS_URL: ${{ secrets.JENKINS_URL }}
+# #         JENKINS_USER: ${{ secrets.JENKINS_USER }}
+# #         JENKINS_API_TOKEN: ${{ secrets.JENKINS_API_TOKEN }}
+# #         JENKINS_JOB_NAME: ${{ secrets.JENKINS_JOB_NAME }}
+# #         JENKINS_JOB_TOKEN: ${{ secrets.JENKINS_JOB_TOKEN }}
+# #       run: curl -X POST $JENKINS_URL/job/$JENKINS_JOB_NAME/build --user $JENKINS_USER:$JENKINS_API_TOKEN
+      
+# #     - name: Wait for Jenkins Job Completion
+# #       id: wait-for-jenkins
+# #       env:
+# #         JENKINS_URL: ${{ secrets.JENKINS_URL }}
+# #         JENKINS_USER: ${{ secrets.JENKINS_USER }}
+# #         JENKINS_API_TOKEN: ${{ secrets.JENKINS_API_TOKEN }}
+# #         JENKINS_JOB_NAME: ${{ secrets.JENKINS_JOB_NAME }}
+# #       run: |
+# #         echo "Waiting for Jenkins job to complete..."
+# #         JENKINS_BUILD_URL="$JENKINS_URL/job/$JENKINS_JOB_NAME/lastBuild/api/json"
+# #         while : ; do
+# #           response=$(curl -s --user $JENKINS_USER:$JENKINS_API_TOKEN $JENKINS_BUILD_URL)
+# #           result=$(echo $response | jq -r '.result')
+# #           if [ "$result" != "null" ]; then
+# #             echo "Jenkins build completed with status: $result"
+# #             break
+# #           fi
+# #           sleep 15
+# #         done
+# #         echo "::set-output name=result::$result"
+# #         echo "::set-output name=jenkins_build_url::$JENKINS_URL/job/$JENKINS_JOB_NAME/lastBuild"
+
+
+# name: Trigger Jenkins Job on PR
 
 # on:
 #   pull_request:
 #     types: [opened, synchronize, reopened]
 
 # jobs:
-#   trigger_jenkins_build:
+#   trigger-jenkins:
 #     runs-on: ubuntu-latest
 
 #     steps:
-#     - name: Trigger Jenkins Job
-#       env:
-#         JENKINS_URL: ${{ secrets.JENKINS_URL }}
-#         JENKINS_USER: ${{ secrets.JENKINS_USER }}
-#         JENKINS_API_TOKEN: ${{ secrets.JENKINS_API_TOKEN }}
-#         JENKINS_JOB_NAME: ${{ secrets.JENKINS_JOB_NAME }}
-#         JENKINS_JOB_TOKEN: ${{ secrets.JENKINS_JOB_TOKEN }}
-#       run: curl -X POST $JENKINS_URL/job/$JENKINS_JOB_NAME/build --user $JENKINS_USER:$JENKINS_API_TOKEN
-      
-#     - name: Wait for Jenkins Job Completion
-#       id: wait-for-jenkins
-#       env:
-#         JENKINS_URL: ${{ secrets.JENKINS_URL }}
-#         JENKINS_USER: ${{ secrets.JENKINS_USER }}
-#         JENKINS_API_TOKEN: ${{ secrets.JENKINS_API_TOKEN }}
-#         JENKINS_JOB_NAME: ${{ secrets.JENKINS_JOB_NAME }}
-#       run: |
-#         echo "Waiting for Jenkins job to complete..."
-#         JENKINS_BUILD_URL="$JENKINS_URL/job/$JENKINS_JOB_NAME/lastBuild/api/json"
-#         while : ; do
-#           response=$(curl -s --user $JENKINS_USER:$JENKINS_API_TOKEN $JENKINS_BUILD_URL)
-#           result=$(echo $response | jq -r '.result')
-#           if [ "$result" != "null" ]; then
-#             echo "Jenkins build completed with status: $result"
-#             break
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+
+#       - name: Trigger Jenkins Job
+#         id: trigger-jenkins
+#         env:
+#           JENKINS_URL: ${{ secrets.JENKINS_URL }}
+#           JENKINS_USER: ${{ secrets.JENKINS_USER }}
+#           JENKINS_API_TOKEN: ${{ secrets.JENKINS_API_TOKEN }}
+#           JENKINS_JOB_NAME: ${{ secrets.JENKINS_JOB_NAME }}
+#         run: |
+#           echo "Triggering Jenkins job..."
+#           curl -X POST $JENKINS_URL/job/$JENKINS_JOB_NAME/build --user $JENKINS_USER:$JENKINS_API_TOKEN
+
+#       - name: Wait for Jenkins Job Completion
+#         id: wait-for-jenkins
+#         env:
+#           JENKINS_URL: ${{ secrets.JENKINS_URL }}
+#           JENKINS_USER: ${{ secrets.JENKINS_USER }}
+#           JENKINS_API_TOKEN: ${{ secrets.JENKINS_API_TOKEN }}
+#           JENKINS_JOB_NAME: ${{ secrets.JENKINS_JOB_NAME }}
+#         run: |
+#           echo "Waiting for Jenkins job to complete..."
+#           JENKINS_BUILD_URL="$JENKINS_URL/job/$JENKINS_JOB_NAME/lastBuild/api/json"
+#           while : ; do
+#             response=$(curl -s --user $JENKINS_USER:$JENKINS_API_TOKEN $JENKINS_BUILD_URL)
+#             result=$(echo $response | jq -r '.result')
+#             if [ "$result" != "null" ]; then
+#               echo "Jenkins build completed with status: $result"
+#               break
+#             fi
+#             sleep 15
+#           done
+#           echo "::set-output name=result::$result"
+#           echo "::set-output name=jenkins_build_url::$JENKINS_URL/job/$JENKINS_JOB_NAME/lastBuild"
+
+#       - name: Update GitHub PR Status
+#         id: update-status
+#         env:
+#           PAT: ${{ secrets.PAT }}
+#         run: |
+#           GITHUB_SHA=$(jq -r '.pull_request.head.sha' $GITHUB_EVENT_PATH)
+#           JENKINS_BUILD_URL=${{ steps.wait-for-jenkins.outputs.jenkins_build_url }}
+#           STATUS=${{ steps.wait-for-jenkins.outputs.result }}
+#           STATE="success"
+#           if [ "$STATUS" != "SUCCESS" ]; then
+#             STATE="failure"
 #           fi
-#           sleep 15
-#         done
-#         echo "::set-output name=result::$result"
-#         echo "::set-output name=jenkins_build_url::$JENKINS_URL/job/$JENKINS_JOB_NAME/lastBuild"
+#           curl -s -X POST \
+#             -H "Authorization: token $PAT" \
+#             -H "Accept: application/vnd.github.v3+json" \
+#             https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA \
+#             -d "{\"state\": \"$STATE\", \"target_url\": \"$JENKINS_BUILD_URL\", \"description\": \"Jenkins build $STATUS\", \"context\": \"continuous-integration/jenkins\"}"
+
 
 
 name: Trigger Jenkins Job on PR
@@ -85,8 +152,8 @@ jobs:
             fi
             sleep 15
           done
-          echo "::set-output name=result::$result"
-          echo "::set-output name=jenkins_build_url::$JENKINS_URL/job/$JENKINS_JOB_NAME/lastBuild"
+          echo "result=$result" >> $GITHUB_ENV
+          echo "jenkins_build_url=$JENKINS_URL/job/$JENKINS_JOB_NAME/lastBuild" >> $GITHUB_ENV
 
       - name: Update GitHub PR Status
         id: update-status
@@ -94,8 +161,8 @@ jobs:
           PAT: ${{ secrets.PAT }}
         run: |
           GITHUB_SHA=$(jq -r '.pull_request.head.sha' $GITHUB_EVENT_PATH)
-          JENKINS_BUILD_URL=${{ steps.wait-for-jenkins.outputs.jenkins_build_url }}
-          STATUS=${{ steps.wait-for-jenkins.outputs.result }}
+          JENKINS_BUILD_URL=${{ env.jenkins_build_url }}
+          STATUS=${{ env.result }}
           STATE="success"
           if [ "$STATUS" != "SUCCESS" ]; then
             STATE="failure"
