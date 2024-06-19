@@ -87,13 +87,14 @@ jobs:
           JENKINS_JOB_NAME: ${{ secrets.JENKINS_JOB_NAME }}
         run: |
           echo "Triggering Jenkins job..."
-          response=$(curl -s -X POST "$JENKINS_URL/job/$JENKINS_JOB_NAME/buildWithParameters" \
-                    --user $JENKINS_USER:$JENKINS_API_TOKEN \
-                    -d token=$JENKINS_API_TOKEN \
-                    -D headers.txt)
+          response=$(curl -X POST $JENKINS_URL/job/$JENKINS_JOB_NAME/build --user $JENKINS_USER:$JENKINS_API_TOKEN)
           cat headers.txt
           queue_location=$(grep -i location headers.txt | awk '{print $2}' | tr -d '\r')
           echo "Queue location: $queue_location"
+          if [ -z "$queue_location" ]; then
+            echo "Failed to trigger Jenkins job. Exiting..."
+            exit 1
+          fi
           queue_id=$(echo $queue_location | awk -F'/' '{print $NF}')
           echo "Queue ID: $queue_id"
           echo "queue_id=$queue_id" >> $GITHUB_ENV
@@ -108,7 +109,7 @@ jobs:
         run: |
           echo "Waiting for Jenkins job to complete..."
           while : ; do
-            build_info=$(curl -s --user $JENKINS_USER:$JENKINS_API_TOKEN "$JENKINS_URL/queue/item/$QUEUE_ID/api/json")
+            build_info=$(curl -v -s --user $JENKINS_USER:$JENKINS_API_TOKEN "$JENKINS_URL/queue/item/$QUEUE_ID/api/json")
             echo "Build Info: $build_info"
             if [ "$(echo $build_info | jq -r '.executable')" != "null" ]; then
               BUILD_NUMBER=$(echo $build_info | jq -r '.executable.number')
@@ -120,7 +121,7 @@ jobs:
           
           JENKINS_BUILD_URL="$JENKINS_URL/job/$JENKINS_JOB_NAME/$BUILD_NUMBER/api/json"
           while : ; do
-            response=$(curl -s --user $JENKINS_USER:$JENKINS_API_TOKEN $JENKINS_BUILD_URL)
+            response=$(curl -v -s --user $JENKINS_USER:$JENKINS_API_TOKEN $JENKINS_BUILD_URL)
             result=$(echo $response | jq -r '.result')
             echo "Build result: $result"
             if [ "$result" != "null" ]; then
