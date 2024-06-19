@@ -32,7 +32,7 @@ jobs:
           JENKINS_JOB_NAME: ${{ secrets.JENKINS_JOB_NAME }}
         run: |
           echo "Waiting for Jenkins job to complete..."
-          JENKINS_BUILD_URL="$JENKINS_URL/job/$JENKINS_JOB_NAME/lastBuild/api/json"
+          JENKINS_BUILD_URL="$JENKINS_URL/job/$JENKINS_JOB_NAME/lastCompletedBuild/api/json"
           while : ; do
             response=$(curl -s --user $JENKINS_USER:$JENKINS_API_TOKEN $JENKINS_BUILD_URL)
             result=$(echo $response | jq -r '.result')
@@ -43,7 +43,7 @@ jobs:
             sleep 15
           done
           echo "result=$result" >> $GITHUB_ENV
-          echo "jenkins_build_url=$JENKINS_URL/job/$JENKINS_JOB_NAME/lastBuild" >> $GITHUB_ENV
+          echo "jenkins_build_url=$JENKINS_URL/job/$JENKINS_JOB_NAME/lastCompletedBuild" >> $GITHUB_ENV
 
       - name: Update GitHub PR Status
         id: update-status
