@@ -91,7 +91,7 @@ jobs:
       - name: Update GitHub PR Status
         id: update-status
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PAT: ${{ secrets.PAT }}
         run: |
           GITHUB_SHA=$(jq -r '.pull_request.head.sha' $GITHUB_EVENT_PATH)
           JENKINS_BUILD_URL=${{ steps.wait-for-jenkins.outputs.jenkins_build_url }}
@@ -101,7 +101,7 @@ jobs:
             STATE="failure"
           fi
           curl -s -X POST \
-            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Authorization: token $PAT" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA \
             -d "{\"state\": \"$STATE\", \"target_url\": \"$JENKINS_BUILD_URL\", \"description\": \"Jenkins build $STATUS\", \"context\": \"continuous-integration/jenkins\"}"
