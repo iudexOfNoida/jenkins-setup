@@ -23,7 +23,7 @@ jobs:
           JENKINS_USER: ${{ secrets.JENKINS_USER }}
           JENKINS_API_TOKEN: ${{ secrets.JENKINS_API_TOKEN }}
           JENKINS_JOB_NAME2: ${{ secrets.JENKINS_JOB_NAME2 }}
-          JENKINS_JOB_NAME3: ${{ secrets.JENKINS_JOB_NAME3 }}
+          JENKINS_JOB_NAME3: ${{ secrets.JENKINS_JOB_NAME }}
         run: |
           $jobNames = "$env:JENKINS_JOB_NAME2,$env:JENKINS_JOB_NAME3" -split ","
           $credentials = "$env:JENKINS_USER" + ":" + "$env:JENKINS_API_TOKEN"
