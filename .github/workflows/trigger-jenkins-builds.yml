@@ -59,7 +59,7 @@ jobs:
             
             Invoke-RestMethod -Uri $url -Method Post -Headers $headers -Body $json
           }
-        shell: pwsh
+        shell: powershell
 
       - name: Find an Available Jenkins Job
         id: find-job
@@ -95,7 +95,7 @@ jobs:
 
           Write-Output "Available Jenkins job: $availableJob"
           echo "AVAILABLE_JOB=$availableJob" | Out-File -FilePath $env:GITHUB_ENV -Append
-        shell: pwsh
+        shell: powershell
 
       - name: Trigger Jenkins Job
         id: trigger-jenkins
@@ -111,7 +111,7 @@ jobs:
           $credentials = "$env:JENKINS_USER" + ":" + "$env:JENKINS_API_TOKEN"
           $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($credentials))
           Invoke-RestMethod -Uri $jenkinsUrl -Method Post -Headers @{Authorization=("Basic $base64AuthInfo")}
-        shell: pwsh
+        shell: powershell
 
       - name: Wait for Jenkins Job Completion
         id: wait-for-jenkins
@@ -139,7 +139,7 @@ jobs:
           } while ($status -eq $true)
           echo "result=$result" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "jenkins_build_url=$JENKINS_TARGET_URL" | Out-File -FilePath $env:GITHUB_ENV -Append
-        shell: pwsh
+        shell: powershell
 
       - name: Update GitHub PR Status
         id: update-status
@@ -164,4 +164,4 @@ jobs:
             Authorization = "token $env:PAT"
             Accept = "application/vnd.github.v3+json"
           } -Body (ConvertTo-Json $body)
-        shell: pwsh
+        shell: powershell
