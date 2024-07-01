@@ -21,7 +21,7 @@ jobs:
         id: find-files
         run: |
           echo "Finding changed C++ files..."
-          echo "cpp_files=$(git diff --name-only origin/main...${{ github.head_ref }})" >> $GITHUB_ENV
+          echo "cpp_files=$(git diff --name-only origin/main..${{ github.head_ref }})" >> $GITHUB_ENV
         
       - name: Run cppcheck on modified files
         if: ${{ steps.find-files.outputs.cpp_files != '' }}
