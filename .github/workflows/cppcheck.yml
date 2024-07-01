@@ -15,11 +15,10 @@ jobs:
       - name: Install cppcheck
         run: sudo apt-get install cppcheck -y
 
-      - name: Find changed C++ files
-        id: find-files
-        run: |
-          echo "::set-output name=cpp_files::$(git diff --name-only --diff-filter=d origin/${{ github.base_ref }}...${{ github.head_ref }} | grep '\.cpp\|\.h' | tr '\n' ' ')"
-        
+      - name: Set output with environment file
+        id: set-output
+        run: echo "cpp_files=$(git diff --name-only --diff-filter=d origin/main...iudexOfNoida-patch-3 -- '*.cpp' '*.h' | tr '\n' ' ')" >> $GITHUB_ENV
+              
       - name: Run cppcheck on modified files
         if: ${{ steps.find-files.outputs.cpp_files != '' }}
         run: |
