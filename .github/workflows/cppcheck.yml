@@ -1,71 +1,77 @@
-# name: Cppcheck on PR Diff
+name: Cppcheck on PR Diff
 
-# on:
-#   pull_request:
-#     types: [opened, synchronize, reopened]
-
-# jobs:
-#   cppcheck:
-#     runs-on: ubuntu-latest
-    
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v2
-#         with:
-#           fetch-depth: 2
-          
-#       - name: Install cppcheck
-#         run: sudo apt-get install cppcheck -y
-
-#       - name: Fetch latest changes from origin
-#         run: git fetch origin
-
-#       - name: Find changed C++ files
-#         id: find-files
-#         run: |
-#           echo "Finding changed C++ files..."
-#           # echo "cpp_files=$(git diff --name-only origin/${{ github.base_ref }}... -- '*.cpp' '*.h' | tr '\n' ' '))" >> $GITHUB_ENV
-#           # echo "cpp_files=$(git diff --name-status origin/${{ github.base_ref }}... | grep -E '^(A|M)' | awk '{print \$2}' | grep -E '\.cpp$|\.h$' | tr '\n' ' ')" >> $GITHUB_ENV
-#           echo "cpp_files=$(git diff --name-status origin/${{ github.base_ref }}... | awk '$1 ~ /^[AM]/ {print $2}' | grep -E '\.cpp$|\.h$')" >> $GITHUB_ENV
-#           echo "Changed C++ files: ${{ env.cpp_files }}"
-          
-#       - name: Run cppcheck on modified files
-#         if: ${{ steps.find-files.outputs.cpp_files != '' }}
-#         run: |
-#           echo "Running cppcheck on modified files..."
-#           cppcheck --enable=all --error-exitcode=1 --force --inline-suppr --quiet ${{ steps.find-files.outputs.cpp_files }}
-
-
-
-name: Check File Differences
-
-on: [push, pull_request]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
-  check_diff:
+  cppcheck:
     runs-on: ubuntu-latest
+    
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+          
+      - name: Install cppcheck
+        run: sudo apt-get install cppcheck -y
 
-    - name: Check for file changes
-      id: file_changes
-      run: |
-        git fetch origin main
-        git diff --name-only HEAD origin/main > changes.txt
-        cat changes.txt
+      - name: Fetch latest changes from origin
+        run: git fetch origin
 
-    - name: Post comment on PR
-      if: github.event_name == 'pull_request'
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const fs = require('fs');
-          const changes = fs.readFileSync('changes.txt', 'utf8');
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: `The following files were changed:\n${changes}`
-          })
+      - name: Check for file changes
+        id: file_changes
+        run: |
+          git fetch origin main
+          echo "cpp_files=$(git diff --name-only HEAD origin/main )" >> $GITHUB_ENV
+
+      # - name: Find changed C++ files
+      #   id: find-files
+      #   run: |
+      #     echo "Finding changed C++ files..."
+      #     # echo "cpp_files=$(git diff --name-only origin/${{ github.base_ref }}... -- '*.cpp' '*.h' | tr '\n' ' '))" >> $GITHUB_ENV
+      #     # echo "cpp_files=$(git diff --name-status origin/${{ github.base_ref }}... | grep -E '^(A|M)' | awk '{print \$2}' | grep -E '\.cpp$|\.h$' | tr '\n' ' ')" >> $GITHUB_ENV
+      #     echo "cpp_files=$(git diff --name-status origin/${{ github.base_ref }}... | awk '$1 ~ /^[AM]/ {print $2}' | grep -E '\.cpp$|\.h$')" >> $GITHUB_ENV
+      #     echo "Changed C++ files: ${{ env.cpp_files }}"
+          
+      - name: Run cppcheck on modified files
+        if: ${{ steps.find-files.outputs.cpp_files != '' }}
+        run: |
+          echo "Running cppcheck on modified files..."
+          cppcheck --enable=all --error-exitcode=1 --force --inline-suppr --quiet ${{ steps.find-files.outputs.cpp_files }}
+
+
+
+# name: Check File Differences
+
+# on: [push, pull_request]
+
+# jobs:
+#   check_diff:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - name: Checkout repository
+#       uses: actions/checkout@v2
+
+#     - name: Check for file changes
+#       id: file_changes
+#       run: |
+#         git fetch origin main
+#         git diff --name-only HEAD origin/main > changes.txt
+#         cat changes.txt
+
+#     - name: Post comment on PR
+#       if: github.event_name == 'pull_request'
+#       uses: actions/github-script@v6
+#       with:
+#         script: |
+#           const fs = require('fs');
+#           const changes = fs.readFileSync('changes.txt', 'utf8');
+#           github.rest.issues.createComment({
+#             issue_number: context.issue.number,
+#             owner: context.repo.owner,
+#             repo: context.repo.repo,
+#             body: `The following files were changed:\n${changes}`
+#           })
 
