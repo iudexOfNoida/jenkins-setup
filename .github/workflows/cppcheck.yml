@@ -17,7 +17,7 @@ jobs:
 
       - name: Set output with environment file
         id: set-output
-        run: echo cpp_files=$(git diff --name-only --diff-filter=d origin/"+${{ github.base_ref }}+"..."+${{ github.head_ref }} -- '*.cpp' '*.h' | tr '\n' ' ') >> $GITHUB_ENV
+        run: echo cpp_files=$(git diff --name-only --diff-filter=d "origin/"+${{ github.base_ref }}+"..."+${{ github.head_ref }} -- '*.cpp' '*.h' | tr '\n' ' ') >> $GITHUB_ENV
               
       - name: Run cppcheck on modified files
         if: ${{ steps.find-files.outputs.cpp_files != '' }}
