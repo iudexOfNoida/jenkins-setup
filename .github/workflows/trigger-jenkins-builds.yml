@@ -25,8 +25,8 @@ jobs:
           git fetch origin +refs/pull/${{ github.event.number }}/merge
           git diff --name-only FETCH_HEAD HEAD > files_changed.txt
           
-          # Run cppcheck on the modified files
-          $files = Get-Content files_changed.txt
+          # Filter .cpp and .h files
+          $files = Get-Content files_changed.txt | Where-Object { $_ -match "\.cpp$|\.h$" }
           $cppcheck_results = ""
           foreach ($file in $files) {
             if (Test-Path $file) {
@@ -48,7 +48,7 @@ jobs:
             }
             Invoke-RestMethod -Uri $url -Method Post -Headers $headers -Body $json
           }
-        shell: powershell
+        shell: pwsh
 
       - name: Find an Available Jenkins Job
         id: find-job
@@ -57,7 +57,7 @@ jobs:
           JENKINS_USER: ${{ secrets.JENKINS_USER }}
           JENKINS_API_TOKEN: ${{ secrets.JENKINS_API_TOKEN }}
           JENKINS_JOB_NAME2: ${{ secrets.JENKINS_JOB_NAME2 }}
-          JENKINS_JOB_NAME3: ${{ secrets.JENKINS_JOB_NAME }}
+          JENKINS_JOB_NAME3: ${{ secrets.JENKINS_JOB_NAME3 }}
         run: |
           $jobNames = "$env:JENKINS_JOB_NAME2,$env:JENKINS_JOB_NAME3" -split ","
           $credentials = "$env:JENKINS_USER" + ":" + "$env:JENKINS_API_TOKEN"
@@ -84,7 +84,7 @@ jobs:
 
           Write-Output "Available Jenkins job: $availableJob"
           echo "AVAILABLE_JOB=$availableJob" | Out-File -FilePath $env:GITHUB_ENV -Append
-        shell: powershell
+        shell: pwsh
 
       - name: Trigger Jenkins Job
         id: trigger-jenkins
@@ -96,11 +96,11 @@ jobs:
           PR_BRANCH: ${{ github.head_ref }}
         run: |
           echo "Triggering Jenkins job..."
-          $jenkinsUrl = $env:JENKINS_URL + "/job/" + $env:JENKINS_JOB_NAME + "/buildWithParameters?PR_BRANCH=" + $env:PR_BRANCH
+          $jenkinsUrl = "$env:JENKINS_URL/job/$env:JENKINS_JOB_NAME/buildWithParameters?PR_BRANCH=$env:PR_BRANCH"
           $credentials = "$env:JENKINS_USER" + ":" + "$env:JENKINS_API_TOKEN"
           $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($credentials))
           Invoke-RestMethod -Uri $jenkinsUrl -Method Post -Headers @{Authorization=("Basic $base64AuthInfo")}
-        shell: powershell
+        shell: pwsh
 
       - name: Wait for Jenkins Job Completion
         id: wait-for-jenkins
@@ -111,8 +111,8 @@ jobs:
           JENKINS_JOB_NAME: ${{ env.AVAILABLE_JOB }}
         run: |
           echo "Waiting for Jenkins job to complete..."
-          $JENKINS_BUILD_URL = $env:JENKINS_URL + "/job/" + $env:JENKINS_JOB_NAME + "/lastBuild/api/json"
-          $JENKINS_TARGET_URL=$env:JENKINS_URL + "/job/" + $env:JENKINS_JOB_NAME + "/lastBuild"
+          $JENKINS_BUILD_URL = "$env:JENKINS_URL/job/$env:JENKINS_JOB_NAME/lastBuild/api/json"
+          $JENKINS_TARGET_URL = "$env:JENKINS_URL/job/$env:JENKINS_JOB_NAME/lastBuild"
           $credentials = "$env:JENKINS_USER" + ":" + "$env:JENKINS_API_TOKEN"
           $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($credentials))
           $status = $null
@@ -128,7 +128,7 @@ jobs:
           } while ($status -eq $true)
           echo "result=$result" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "jenkins_build_url=$JENKINS_TARGET_URL" | Out-File -FilePath $env:GITHUB_ENV -Append
-        shell: powershell
+        shell: pwsh
 
       - name: Update GitHub PR Status
         id: update-status
@@ -153,4 +153,4 @@ jobs:
             Authorization = "token $env:PAT"
             Accept = "application/vnd.github.v3+json"
           } -Body (ConvertTo-Json $body)
-        shell: powershell
+        shell: pwsh
