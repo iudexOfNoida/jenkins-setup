@@ -1,0 +1,26 @@
+name: Cppcheck on PR Diff
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  cppcheck:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install cppcheck
+        run: sudo apt-get install cppcheck -y
+
+      - name: Find changed C++ files
+        id: find-files
+        run: |
+          echo "::set-output name=cpp_files::$(git diff --name-only --diff-filter=d origin/${{ github.base_ref }}...${{ github.head_ref }} | grep '\.cpp\|\.h' | tr '\n' ' ')"
+        
+      - name: Run cppcheck on modified files
+        if: ${{ steps.find-files.outputs.cpp_files != '' }}
+        run: |
+          cppcheck --enable=all --error-exitcode=1 --force --inline-suppr --quiet ${{ steps.find-files.outputs.cpp_files }}
