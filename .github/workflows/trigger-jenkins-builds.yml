@@ -10,8 +10,7 @@ jobs:
 
     steps:
       - name: Set PowerShell Execution Policy
-        run: |
-          Set-ExecutionPolicy RemoteSigned -Scope Process -Force
+        run: Set-ExecutionPolicy RemoteSigned -Scope Process -Force
           
       - name: Checkout code
         uses: actions/checkout@v2
@@ -27,6 +26,9 @@ jobs:
           
           # Filter .cpp and .h files
           $files = Get-Content files_changed.txt | Where-Object { $_ -match "\.cpp$|\.h$" }
+          Write-Output "Files changed in this PR:"
+          Write-Output $files
+          
           $cppcheck_results = ""
           foreach ($file in $files) {
             if (Test-Path $file) {
@@ -37,15 +39,24 @@ jobs:
 
           # Post the cppcheck results as a comment on the PR
           if ($cppcheck_results) {
+            Write-Output "Cppcheck results:"
+            Write-Output $cppcheck_results
+            
             $body = @{
               body = "## Cppcheck results:`n```${cppcheck_results}```"
             }
             $json = $body | ConvertTo-Json
-            $url = "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.number }}/comments"
+            Write-Output "Json body:"
+            Write-Output $json
+            
+            $url = "https://api.github.com/repos/"+${{ github.repository }}+"/issues/"+${{ github.event.number }}+"/comments"
             $headers = @{
-              Authorization = "token $env:GITHUB_TOKEN"
+              Authorization = "token "+$env:GITHUB_TOKEN
               Accept = "application/vnd.github.v3+json"
             }
+            Write-Output "URL to post comment:"
+            Write-Output $url
+            
             Invoke-RestMethod -Uri $url -Method Post -Headers $headers -Body $json
           }
         shell: pwsh
@@ -65,7 +76,7 @@ jobs:
           $availableJob = $null
 
           foreach ($jobName in $jobNames) {
-            $jenkinsJobUrl = "$env:JENKINS_URL/job/$jobName/lastBuild/api/json"
+            $jenkinsJobUrl = $env:JENKINS_URL+"/job/"+$jobName+"/lastBuild/api/json"
             try {
               $response = Invoke-RestMethod -Uri $jenkinsJobUrl -Headers @{Authorization=("Basic $base64AuthInfo")}
               if ($response.building -eq $false) {
