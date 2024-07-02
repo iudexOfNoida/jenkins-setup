@@ -62,8 +62,8 @@ jobs:
           PR_BRANCH: ${{ github.head_ref }}
         run: |
           echo "Triggering Jenkins job..."
-          $jenkinsUrl = $env:JENKINS_URL + "/job/" + $env:JENKINS_JOB_NAME + "/buildWithParameters?PR_BRANCH=" + $env:PR_BRANCH
-          $credentials = "$env:JENKINS_USER" + ":" + "$env:JENKINS_API_TOKEN"
+          $jenkinsUrl = $env:JENKINS_URL + "/job/" + $env:JENKINS_JOB_NAME + "/build"
+          $credentials = $env:JENKINS_USER + ":" + $env:JENKINS_API_TOKEN
           $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($credentials))
           Invoke-RestMethod -Uri $jenkinsUrl -Method Post -Headers @{Authorization=("Basic $base64AuthInfo")}
         shell: powershell
