@@ -2,7 +2,7 @@
 
 void createMemoryLeak() {
     // Allocate memory for an integer
-    int* leakyInt = new int(66);
+    int* leakyInt = new int(6);
 
 
     // Normally, we would delete the allocated memory
