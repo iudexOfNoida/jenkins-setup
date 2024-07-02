@@ -21,17 +21,18 @@ jobs:
         run: git fetch origin
 
       - name: Find changed C++ files
+        id: find-files
         run: |
           echo "Finding changed C++ files..."
-          cpp_files=$(git diff --name-status HEAD origin/main | awk '$1 ~ /^[AM]/ {print $2}' | grep -E '\.cpp$|\.h$' | tr '\n' ' ')
+          cpp_files=$(git diff --name-status HEAD~1 HEAD | awk '$1 ~ /^[AM]/ {print $2}' | grep -E '\.cpp$|\.h$' | tr '\n' ' ')
           echo "cpp_files=${cpp_files}" >> $GITHUB_ENV
-          echo "Changed C++ files: ${{ env.cpp_files }}"
-          
+          echo "Changed C++ files: ${cpp_files}"
+    
       - name: Run cppcheck on modified files
-        if: ${{ steps.find-files.outputs.cpp_files != '' }}
+        if: env.cpp_files != ''
         run: |
           echo "Running cppcheck on modified files..."
-          cppcheck --enable=all --error-exitcode=1 --force --inline-suppr --quiet ${{ steps.find-files.outputs.cpp_files }}
+          cppcheck --enable=all --error-exitcode=1 --force --inline-suppr --quiet ${cpp_files}
 
 # name: Check File Differences
 
