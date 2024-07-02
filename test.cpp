@@ -2,12 +2,14 @@
 
 void createMemoryLeak() {
     // Allocate memory for an integer
-    int* leakyInt = new int(42);
+    int* leakyInt = new int(66);
+
 
     // Normally, we would delete the allocated memory
     // delete leakyInt;
 
     // Because we do not delete it, we have a memory leak
+    delete leakyInt;
 }
 
 int main() {
