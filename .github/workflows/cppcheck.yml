@@ -35,14 +35,19 @@ jobs:
       #     # echo "cpp_files=$(git diff --name-status origin/${{ github.base_ref }}... | grep -E '^(A|M)' | awk '{print \$2}' | grep -E '\.cpp$|\.h$' | tr '\n' ' ')" >> $GITHUB_ENV
       #     echo "cpp_files=$(git diff --name-status origin/${{ github.base_ref }}... | awk '$1 ~ /^[AM]/ {print $2}' | grep -E '\.cpp$|\.h$')" >> $GITHUB_ENV
       #     echo "Changed C++ files: ${{ env.cpp_files }}"
+
+      - name: Find changed C++ files
+        run: |
+          echo "Finding changed C++ files..."
+          cpp_files=$(git diff --name-status HEAD origin/main | awk '$1 ~ /^[AM]/ {print $2}' | grep -E '\.cpp$|\.h$' | tr '\n' ' ')
+          echo "cpp_files=${cpp_files}" >> $GITHUB_ENV
+          echo "Changed C++ files: ${{ env.cpp_files }}"
           
       - name: Run cppcheck on modified files
         if: ${{ steps.find-files.outputs.cpp_files != '' }}
         run: |
           echo "Running cppcheck on modified files..."
           cppcheck --enable=all --error-exitcode=1 --force --inline-suppr --quiet ${{ steps.find-files.outputs.cpp_files }}
-
-
 
 # name: Check File Differences
 
