@@ -6,7 +6,8 @@ void createMemoryLeak() {
 
     // Normally, we would delete the allocated memory
     // delete leakyInt;
-
+    int a = 5;
+    cout<<a;
     // Because we do not delete it, we have a memory leak
 }
 
