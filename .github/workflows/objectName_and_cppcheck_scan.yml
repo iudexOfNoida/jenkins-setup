@@ -47,10 +47,10 @@ jobs:
               file_object_names=$(git diff origin/main -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^+\s*objectName\s*:\s*//')
             fi
             if [ ! -z "$file_ids" ]; then
-              ids="${ids}${file}:\n${file_ids}\n\n"
+              ids="${ids}${file}:"+"\n"+${file_ids}\n\n"
             fi
             if [ ! -z "$file_object_names" ]; then
-              object_names="${object_names}${file}:\n${file_object_names}\n\n"
+              object_names="${object_names}${file}:"+\n"+${file_object_names}\n\n"
             fi
           done
           echo "ids<<EOF" >> $GITHUB_ENV
