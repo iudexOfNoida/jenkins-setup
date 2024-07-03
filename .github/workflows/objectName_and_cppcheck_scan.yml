@@ -107,7 +107,6 @@ jobs:
           echo "Parsing QML files for id and objectName changes..."
           ids=""
           object_names=""
-          delimiter=$'__EOF__'
           for file in ${qml_files}; do
             if [ $(git diff --name-status origin/main | grep -E "^[A]\s+$file$" | wc -l) -ne 0 ]; then
               # File is newly added, parse entire file
@@ -119,10 +118,16 @@ jobs:
               file_object_names=$(git diff origin/main -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^+\s*objectName\s*:\s*//')
             fi
             if [ ! -z "$file_ids" ]; then
-              ids="${ids}${file}:${delimiter}${file_ids}${delimiter}${delimiter}"
+              ids="${ids}${file}:
+                  ${file_ids}
+                  
+                  "
             fi
             if [ ! -z "$file_object_names" ]; then
-              object_names="${object_names}${file}:${delimiter}${file_object_names}${delimiter}${delimiter}"
+              object_names="${object_names}${file}:
+                            ${file_object_names}
+                            
+                           "
             fi
           done
           echo "ids<<EOF" >> $GITHUB_ENV
