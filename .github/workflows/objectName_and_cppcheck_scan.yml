@@ -46,15 +46,15 @@ jobs:
             fi
             if [ ! -z "$file_ids" ]; then
               ids="${ids}${file}:
-              ${file_ids}
+          ${file_ids}
                   
-              "
+          "
             fi
             if [ ! -z "$file_object_names" ]; then
               object_names="${object_names}${file}:
-              ${file_object_names}
+          ${file_object_names}
                             
-              "
+          "
             fi
           done
           echo "ids<<EOF" >> $GITHUB_ENV
