@@ -49,6 +49,7 @@ jobs:
           done
           echo "${ids_and_names}" > ids_and_names.txt
           echo "ids_and_names_file=ids_and_names.txt" >> $GITHUB_ENV
+          echo "Changed ids and names: ${ids_and_names}"
 
       - name: Post PR comment
         uses: actions/github-script@v3
