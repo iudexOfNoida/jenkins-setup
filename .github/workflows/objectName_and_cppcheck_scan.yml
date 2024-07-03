@@ -1,4 +1,4 @@
-name: Cppcheck on PR Diff
+name: obejctName and cppcheck scan
 
 on:
   pull_request:
