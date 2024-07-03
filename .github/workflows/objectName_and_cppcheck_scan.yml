@@ -32,6 +32,7 @@ jobs:
         id: parse-qml
         run: |
           echo "Parsing QML files for id and objectName changes..."
+          echo ""
           ids=""
           object_names=""
           for file in ${qml_files}; do
@@ -48,14 +49,16 @@ jobs:
               ids="
           ${ids}
           ${file}:
-          ${file_ids}        
+          ${file_ids}   
+          
           "
             fi
             if [ ! -z "$file_object_names" ]; then
               object_names="
           ${object_names}
           ${file}:
-          ${file_object_names}                 
+          ${file_object_names}    
+          
           "
             fi
           done
@@ -66,6 +69,7 @@ jobs:
           echo -e "${object_names}" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
           echo "Changed ids: ${ids}"
+          echo ""
           echo "Changed object_names: ${object_names}"
       
       - name: Find changed C++ files
