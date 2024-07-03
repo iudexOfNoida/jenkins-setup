@@ -28,20 +28,40 @@ jobs:
           echo "qml_files=${qml_files}" >> $GITHUB_ENV
           echo "Changed QML files: ${qml_files}"
 
+      # - name: Parse QML files for changes
+      #   id: parse-qml
+      #   run: |
+      #     echo "Parsing QML files for id and objectName changes..."
+      #     ids_and_names=""
+      #     for file in ${qml_files}; do
+      #       ids=$(git diff HEAD~1 HEAD -- "$file" | grep -E '^\+\s*id\s*:' | sed 's/^+\s*id\s*:\s*//')
+      #       object_names=$(git diff HEAD~1 HEAD -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^+\s*objectName\s*:\s*//')
+      #       if [ ! -z "$ids" ] || [ ! -z "$object_names" ]; then
+      #         ids_and_names=$"{ids_and_names}\n$file:\nids:\n${ids}\nobjectNames:\n${object_names}\n"
+      #       fi
+      #     done
+      #     echo "ids_and_names=${ids_and_names}" >> $GITHUB_ENV
+      #     echo "Changed ids and names: ${ids_and_names}"
       - name: Parse QML files for changes
         id: parse-qml
         run: |
           echo "Parsing QML files for id and objectName changes..."
           ids_and_names=""
           for file in ${qml_files}; do
-            ids=$(git diff HEAD~1 HEAD -- "$file" | grep -E '^\+\s*id\s*:' | sed 's/^+\s*id\s*:\s*//')
-            object_names=$(git diff HEAD~1 HEAD -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^+\s*objectName\s*:\s*//')
+            if [ $(git diff --name-status origin/main | grep -E "^[A]\s+$file$" | wc -l) -ne 0 ]; then
+              # File is newly added, parse entire file
+              ids=$(grep -E '^\s*id\s*:' "$file" | sed 's/^\s*id\s*:\s*//')
+              object_names=$(grep -E '^\s*objectName\s*:' "$file" | sed 's/^\s*objectName\s*:\s*//')
+            else
+              # File is modified, parse diff
+              ids=$(git diff origin/main -- "$file" | grep -E '^\+\s*id\s*:' | sed 's/^+\s*id\s*:\s*//')
+              object_names=$(git diff origin/main -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^+\s*objectName\s*:\s*//')
+            fi
             if [ ! -z "$ids" ] || [ ! -z "$object_names" ]; then
-              ids_and_names=$"{ids_and_names}\n$file:\nids:\n${ids}\nobjectNames:\n${object_names}\n"
+              ids_and_names="${ids_and_names}\n$file:\nids:\n${ids}\nobjectNames:\n${object_names}\n"
             fi
           done
           echo "ids_and_names=${ids_and_names}" >> $GITHUB_ENV
-          echo "Changed ids and names: ${ids_and_names}"
 
       - name: Post PR comment
         uses: actions/github-script@v3
