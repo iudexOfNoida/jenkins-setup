@@ -20,6 +20,45 @@ jobs:
       - name: Fetch latest changes from origin
         run: git fetch origin
 
+      - name: Find changed QML files
+        id: find-qml-files
+        run: |
+          echo "Finding changed QML files..."
+          qml_files=$(git diff --name-status HEAD~1 HEAD | awk '$1 ~ /^[AM]/ {print $2}' | grep -E '\.qml$' | tr '\n' ' ')
+          echo "qml_files=${qml_files}" >> $GITHUB_ENV
+          echo "Changed QML files: ${qml_files}"
+
+      - name: Parse QML files for changes
+        id: parse-qml
+        run: |
+          echo "Parsing QML files for id and objectName changes..."
+          ids_and_names=""
+          for file in ${qml_files}; do
+            ids=$(git diff HEAD~1 HEAD -- "$file" | grep -E '^\+\s*id\s*:' | sed 's/^+\s*id\s*:\s*//')
+            object_names=$(git diff HEAD~1 HEAD -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^+\s*objectName\s*:\s*//')
+            if [ ! -z "$ids" ] || [ ! -z "$object_names" ]; then
+              ids_and_names="${ids_and_names}\n$file:\nids:\n${ids}\nobjectNames:\n${object_names}\n"
+            fi
+          done
+          echo "ids_and_names=${ids_and_names}" >> $GITHUB_ENV
+
+      - name: Post PR comment
+        uses: actions/github-script@v3
+        with:
+          script: |
+            const ids_and_names = process.env.ids_and_names;
+            if (ids_and_names) {
+              const comment = `Changed QML files and their ids and objectNames:\n${ids_and_names}`;
+              github.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            } else {
+              console.log("No id or objectName changes found.");
+            }
+
       - name: Find changed C++ files
         id: find-files
         run: |
@@ -33,36 +72,4 @@ jobs:
         run: |
           echo "Running cppcheck on modified files..."
           cppcheck --enable=all --error-exitcode=1 --force --inline-suppr --quiet ${cpp_files}
-
-# name: Check File Differences
-
-# on: [push, pull_request]
-
-# jobs:
-#   check_diff:
-#     runs-on: ubuntu-latest
-#     steps:
-#     - name: Checkout repository
-#       uses: actions/checkout@v2
-
-#     - name: Check for file changes
-#       id: file_changes
-#       run: |
-#         git fetch origin main
-#         git diff --name-only HEAD origin/main > changes.txt
-#         cat changes.txt
-
-#     - name: Post comment on PR
-#       if: github.event_name == 'pull_request'
-#       uses: actions/github-script@v6
-#       with:
-#         script: |
-#           const fs = require('fs');
-#           const changes = fs.readFileSync('changes.txt', 'utf8');
-#           github.rest.issues.createComment({
-#             issue_number: context.issue.number,
-#             owner: context.repo.owner,
-#             repo: context.repo.repo,
-#             body: `The following files were changed:\n${changes}`
-#           })
 
