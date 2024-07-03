@@ -28,11 +28,12 @@ jobs:
           echo "qml_files=${qml_files}" >> $GITHUB_ENV
           echo "Changed QML files: ${qml_files}"
 
+
+
       - name: Parse QML files for changes
         id: parse-qml
         run: |
           echo "Parsing QML files for id and objectName changes..."
-          ids_and_names=""
           ids=""
           object_names=""
           for file in ${qml_files}; do
@@ -52,9 +53,13 @@ jobs:
               object_names="${object_names}${file}:\n${file_object_names}\n\n"
             fi
           done
-          echo "ids=${ids}" >> $GITHUB_ENV
-          echo "object_names=${ids}" >> $GITHUB_ENV
-          echo "Changed ids: ${ids_and_names}"
+          echo "ids<<EOF" >> $GITHUB_ENV
+          echo -e "${ids}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          echo "object_names<<EOF" >> $GITHUB_ENV
+          echo -e "${object_names}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          echo "Changed ids: ${ids}"
           echo "Changed object_names: ${object_names}"
 
       - name: Post PR comment for ids
@@ -93,7 +98,12 @@ jobs:
               });
             } else {
               console.log("No objectName changes found.");
-            }     
+            }
+
+
+
+
+
 
       # - name: Parse QML files for changes
       #   id: parse-qml
