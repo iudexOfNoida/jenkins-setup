@@ -28,7 +28,7 @@ jobs:
           echo "qml_files=${qml_files}" >> $GITHUB_ENV
           echo "Changed QML files: ${qml_files}"
 
-      - name: Parse QML files for changes
+      - name: Find id and objectName changes
         id: parse-qml
         run: |
           echo "Parsing QML files for id and objectName changes..."
