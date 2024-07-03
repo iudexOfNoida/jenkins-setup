@@ -123,7 +123,7 @@ Rectangle {
             }
 
             Item {
-                id: objSperator
+                id: abcdefg
                 objectName: "objSperator"
                 height: objBGRectArea.height - (objBGBlendedHeader.height + objBGBlendedFooter.height)
                 width: objBGRectArea.width

@@ -102,7 +102,7 @@ CustomPopUp {
                 }
 
                 Rectangle{
-                    id : objDuplicateRect
+                    id : objDuplicateRect12345
                     objectName: "objDuplicateRect"
                     width: fullHDScale(248)
                     height: fullHDScale(28)
