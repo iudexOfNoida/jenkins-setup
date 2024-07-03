@@ -46,16 +46,14 @@ jobs:
               file_object_names=$(git diff origin/main -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^+\s*objectName\s*:\s*//')
             fi
             if [ ! -z "$file_ids" ]; then
-              ids="
-          ${ids}
+              ids="${ids}
           ${file}:
           ${file_ids}   
           
           "
             fi
             if [ ! -z "$file_object_names" ]; then
-              object_names="
-          ${object_names}
+              object_names="${object_names}
           ${file}:
           ${file_object_names}    
           
@@ -68,9 +66,8 @@ jobs:
           echo "object_names<<EOF" >> $GITHUB_ENV
           echo -e "${object_names}" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-          echo "Changed ids: ${ids}"
-          echo ""
-          echo "Changed object_names: ${object_names}"
+          echo "-----------------Changed ids---------------- ${ids}"
+          echo "------------Changed object_names------------ ${object_names}"
       
       - name: Find changed C++ files
         id: find-files
