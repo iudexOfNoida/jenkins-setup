@@ -65,44 +65,6 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
           echo "Changed ids: ${ids}"
           echo "Changed object_names: ${object_names}"
-
-      - name: Post PR comment for ids
-        uses: actions/github-script@v3
-        env:
-          IDS: ${{ env.ids }}
-        with:
-          script: |
-            const ids = process.env.IDS.split('__EOF__').join('\n').trim();
-            if (ids) {
-              const comment = `Changed QML ids:\n${ids}`;
-              github.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: comment
-              });
-            } else {
-              console.log("No id changes found.");
-            }
-
-      - name: Post PR comment for objectNames
-        uses: actions/github-script@v3
-        env:
-          OBJECT_NAMES: ${{ env.object_names }}
-        with:
-          script: |
-            const objectNames = process.env.OBJECT_NAMES.split('__EOF__').join('\n').trim();
-            if (objectNames) {
-              const comment = `Changed QML objectNames:\n${objectNames}`;
-              github.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: comment
-              });
-            } else {
-              console.log("No objectName changes found.");
-            }
       
       - name: Find changed C++ files
         id: find-files
@@ -117,4 +79,44 @@ jobs:
         run: |
           echo "Running cppcheck on modified files..."
           cppcheck --enable=all --error-exitcode=1 --force --inline-suppr --quiet ${cpp_files}
+
+
+      # - name: Post PR comment for ids
+      #   uses: actions/github-script@v3
+      #   env:
+      #     IDS: ${{ env.ids }}
+      #   with:
+      #     script: |
+      #       const ids = process.env.IDS.split('__EOF__').join('\n').trim();
+      #       if (ids) {
+      #         const comment = `Changed QML ids:\n${ids}`;
+      #         github.issues.createComment({
+      #           issue_number: context.issue.number,
+      #           owner: context.repo.owner,
+      #           repo: context.repo.repo,
+      #           body: comment
+      #         });
+      #       } else {
+      #         console.log("No id changes found.");
+      #       }
+
+      # - name: Post PR comment for objectNames
+      #   uses: actions/github-script@v3
+      #   env:
+      #     OBJECT_NAMES: ${{ env.object_names }}
+      #   with:
+      #     script: |
+      #       const objectNames = process.env.OBJECT_NAMES.split('__EOF__').join('\n').trim();
+      #       if (objectNames) {
+      #         const comment = `Changed QML objectNames:\n${objectNames}`;
+      #         github.issues.createComment({
+      #           issue_number: context.issue.number,
+      #           owner: context.repo.owner,
+      #           repo: context.repo.repo,
+      #           body: comment
+      #         });
+      #       } else {
+      #         console.log("No objectName changes found.");
+      #       }
+
 
