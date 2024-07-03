@@ -44,12 +44,12 @@ jobs:
               object_names=$(git diff origin/main -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^+\s*objectName\s*:\s*//')
             fi
             if [ ! -z "$ids" ] || [ ! -z "$object_names" ]; then
-              ids_and_names="${ids_and_names}\n$file:\nids:\n${ids}\nobjectNames:\n${object_names}\n"
+              ids_and_names="${ids_and_names}${file}:\nids:\n${ids}\nobjectNames:\n${object_names}\n\n"
             fi
           done
-          echo "${ids_and_names}" > ids_and_names.txt
+          echo -e "${ids_and_names}" > ids_and_names.txt
           echo "ids_and_names_file=ids_and_names.txt" >> $GITHUB_ENV
-          echo "Changed ids and names: ${ids_and_names}"
+          echo "Changed ids_and_names: ${ids_and_names}"
 
       - name: Post PR comment
         uses: actions/github-script@v3
@@ -75,8 +75,6 @@ jobs:
             } else {
               console.log("File with ids and objectNames not found.");
             }
-
-      
       # - name: Parse QML files for changes
       #   id: parse-qml
       #   run: |
