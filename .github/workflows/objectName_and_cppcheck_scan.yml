@@ -37,7 +37,7 @@ jobs:
             ids=$(git diff HEAD~1 HEAD -- "$file" | grep -E '^\+\s*id\s*:' | sed 's/^+\s*id\s*:\s*//')
             object_names=$(git diff HEAD~1 HEAD -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^+\s*objectName\s*:\s*//')
             if [ ! -z "$ids" ] || [ ! -z "$object_names" ]; then
-              ids_and_names=$("{ids_and_names}\n$file:\nids:\n${ids}\nobjectNames:\n${object_names}\n")
+              ids_and_names=$"{ids_and_names}\n$file:\nids:\n${ids}\nobjectNames:\n${object_names}\n"
             fi
           done
           echo "ids_and_names=${ids_and_names}" >> $GITHUB_ENV
