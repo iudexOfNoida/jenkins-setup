@@ -45,13 +45,15 @@ jobs:
               file_object_names=$(git diff origin/main -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^+\s*objectName\s*:\s*//')
             fi
             if [ ! -z "$file_ids" ]; then
-              ids="${ids}${file}:
+              ids="${ids}
+          ${file}:
           ${file_ids}
                   
           "
             fi
             if [ ! -z "$file_object_names" ]; then
-              object_names="${object_names}${file}:
+              object_names="${object_names}
+          ${file}:
           ${file_object_names}
                             
           "
