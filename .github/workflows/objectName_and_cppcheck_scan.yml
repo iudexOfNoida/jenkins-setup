@@ -1,11 +1,11 @@
-name: obejctName and cppcheck scan
+name: objectName and cppcheck scan
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
-  cppcheck:
+  quality_and_safety_scan:
     runs-on: ubuntu-latest
     
     steps:
@@ -27,21 +27,6 @@ jobs:
           qml_files=$(git diff --name-status HEAD~1 HEAD | awk '$1 ~ /^[AM]/ {print $2}' | grep -E '\.qml$' | tr '\n' ' ')
           echo "qml_files=${qml_files}" >> $GITHUB_ENV
           echo "Changed QML files: ${qml_files}"
-
-      # - name: Parse QML files for changes
-      #   id: parse-qml
-      #   run: |
-      #     echo "Parsing QML files for id and objectName changes..."
-      #     ids_and_names=""
-      #     for file in ${qml_files}; do
-      #       ids=$(git diff HEAD~1 HEAD -- "$file" | grep -E '^\+\s*id\s*:' | sed 's/^+\s*id\s*:\s*//')
-      #       object_names=$(git diff HEAD~1 HEAD -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^+\s*objectName\s*:\s*//')
-      #       if [ ! -z "$ids" ] || [ ! -z "$object_names" ]; then
-      #         ids_and_names=$"{ids_and_names}\n$file:\nids:\n${ids}\nobjectNames:\n${object_names}\n"
-      #       fi
-      #     done
-      #     echo "ids_and_names=${ids_and_names}" >> $GITHUB_ENV
-      #     echo "Changed ids and names: ${ids_and_names}"
 
       - name: Parse QML files for changes
         id: parse-qml
@@ -66,14 +51,16 @@ jobs:
           encoded_ids_and_names=$(echo "${ids_and_names}" | base64)
           echo "encoded_ids_and_names=${encoded_ids_and_names}" >> $GITHUB_ENV
 
- 
       - name: Post PR comment
         uses: actions/github-script@v3
+        env:
+          ENCODED_IDS_AND_NAMES: ${{ env.encoded_ids_and_names }}
         with:
           script: |
-            const ids_and_names = process.env.ids_and_names;
-            if (ids_and_names) {
-              const comment = `Changed QML files and their ids and objectNames:\n${ids_and_names}`;
+            const encodedIdsAndNames = process.env.ENCODED_IDS_AND_NAMES;
+            if (encodedIdsAndNames && encodedIdsAndNames.trim()) {
+              const idsAndNames = Buffer.from(encodedIdsAndNames, 'base64').toString('utf-8');
+              const comment = `Changed QML files and their ids and objectNames:\n${idsAndNames}`;
               github.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
@@ -83,6 +70,39 @@ jobs:
             } else {
               console.log("No id or objectName changes found.");
             }
+
+      # - name: Parse QML files for changes
+      #   id: parse-qml
+      #   run: |
+      #     echo "Parsing QML files for id and objectName changes..."
+      #     ids_and_names=""
+      #     for file in ${qml_files}; do
+      #       ids=$(git diff HEAD~1 HEAD -- "$file" | grep -E '^\+\s*id\s*:' | sed 's/^+\s*id\s*:\s*//')
+      #       object_names=$(git diff HEAD~1 HEAD -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^+\s*objectName\s*:\s*//')
+      #       if [ ! -z "$ids" ] || [ ! -z "$object_names" ]; then
+      #         ids_and_names=$"{ids_and_names}\n$file:\nids:\n${ids}\nobjectNames:\n${object_names}\n"
+      #       fi
+      #     done
+      #     echo "ids_and_names=${ids_and_names}" >> $GITHUB_ENV
+      #     echo "Changed ids and names: ${ids_and_names}"
+
+ 
+      # - name: Post PR comment
+      #   uses: actions/github-script@v3
+      #   with:
+      #     script: |
+      #       const ids_and_names = process.env.ids_and_names;
+      #       if (ids_and_names) {
+      #         const comment = `Changed QML files and their ids and objectNames:\n${ids_and_names}`;
+      #         github.issues.createComment({
+      #           issue_number: context.issue.number,
+      #           owner: context.repo.owner,
+      #           repo: context.repo.repo,
+      #           body: comment
+      #         });
+      #       } else {
+      #         console.log("No id or objectName changes found.");
+      #       }
 
       - name: Find changed C++ files
         id: find-files
