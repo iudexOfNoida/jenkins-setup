@@ -112,7 +112,7 @@ CustomPopUp {
 
                     CustomText{
                         id: objDestGrpDuplicate
-                        objectName: "objDestGrpDuplicate"
+                        objectName: "objDestGrpDuplicateChanged"
                         text: qsTr("Duplicate") + ctxWindowsMgrUi.emptyString + " " + Constants.objStaticKey.strGroup
                         font.pixelSize: fullHDScale(Constants.objStaticValue.m_iMediumFontSize)
                         opacity: enabled ? 1 : 0.5
@@ -141,7 +141,7 @@ CustomPopUp {
 
                 Rectangle{
                     id : objRenameRect
-                    objectName: "objRenameRect"
+                    objectName: "objRenameRectChanged"
                     width: fullHDScale(248)
                     height: fullHDScale(28)
                     anchors.horizontalCenter: parent.horizontalCenter

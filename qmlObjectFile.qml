@@ -146,7 +146,7 @@ Rectangle {
             Row {
                 Item {
                     id: backGroundHeaderRect
-                    objectName: "backGroundHeaderRect"
+                    objectName: "backGroundHeaderChanged"
                     height: objBGRectArea.iHeaderFooterHieght
                     width: objBGRectArea.width - fullHDScale(56)
                     visible: objBGRectArea.width > fullHDScale(46)
@@ -181,7 +181,7 @@ Rectangle {
                 }
 
                 Item {
-                    id: objDisplayBGRect
+                    id: objDisplayBGRect23
                     objectName: "objDisplayBGRect"
                     height: objBGRectArea.iHeaderFooterHieght
                     width: fullHDScale(40)
