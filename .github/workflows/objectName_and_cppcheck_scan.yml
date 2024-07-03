@@ -30,12 +30,84 @@ jobs:
 
 
 
+      # - name: Parse QML files for changes
+      #   id: parse-qml
+      #   run: |
+      #     echo "Parsing QML files for id and objectName changes..."
+      #     ids=""
+      #     object_names=""
+      #     for file in ${qml_files}; do
+      #       if [ $(git diff --name-status origin/main | grep -E "^[A]\s+$file$" | wc -l) -ne 0 ]; then
+      #         # File is newly added, parse entire file
+      #         file_ids=$(grep -E '^\s*id\s*:' "$file" | sed 's/^\s*id\s*:\s*//')
+      #         file_object_names=$(grep -E '^\s*objectName\s*:' "$file" | sed 's/^\s*objectName\s*:\s*//')
+      #       else
+      #         # File is modified, parse diff
+      #         file_ids=$(git diff origin/main -- "$file" | grep -E '^\+\s*id\s*:' | sed 's/^+\s*id\s*:\s*//')
+      #         file_object_names=$(git diff origin/main -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^+\s*objectName\s*:\s*//')
+      #       fi
+      #       if [ ! -z "$file_ids" ]; then
+      #         ids="${ids}${file}:\n\n${file_ids}\n\n"
+      #       fi
+      #       if [ ! -z "$file_object_names" ]; then
+      #         object_names="${object_names}${file}:\n\n${file_object_names}\n\n"
+      #       fi
+      #     done
+      #     echo "ids<<EOF" >> $GITHUB_ENV
+      #     echo -e "${ids}" >> $GITHUB_ENV
+      #     echo "EOF" >> $GITHUB_ENV
+      #     echo "object_names<<EOF" >> $GITHUB_ENV
+      #     echo -e "${object_names}" >> $GITHUB_ENV
+      #     echo "EOF" >> $GITHUB_ENV
+      #     echo "Changed ids: ${ids}"
+      #     echo "Changed object_names: ${object_names}"
+
+      # - name: Post PR comment for ids
+      #   uses: actions/github-script@v3
+      #   env:
+      #     IDS: ${{ env.ids }}
+      #   with:
+      #     script: |
+      #       const ids = process.env.IDS;
+      #       if (ids && ids.trim()) {
+      #         const comment = `Changed QML ids:\n${ids}`;
+      #         github.issues.createComment({
+      #           issue_number: context.issue.number,
+      #           owner: context.repo.owner,
+      #           repo: context.repo.repo,
+      #           body: comment
+      #         });
+      #       } else {
+      #         console.log("No id changes found.");
+      #       }
+
+      # - name: Post PR comment for objectNames
+      #   uses: actions/github-script@v3
+      #   env:
+      #     OBJECT_NAMES: ${{ env.object_names }}
+      #   with:
+      #     script: |
+      #       const objectNames = process.env.OBJECT_NAMES;
+      #       if (objectNames && objectNames.trim()) {
+      #         const comment = `Changed QML objectNames:\n${objectNames}`;
+      #         github.issues.createComment({
+      #           issue_number: context.issue.number,
+      #           owner: context.repo.owner,
+      #           repo: context.repo.repo,
+      #           body: comment
+      #         });
+      #       } else {
+      #         console.log("No objectName changes found.");
+      #       }
+
+
       - name: Parse QML files for changes
         id: parse-qml
         run: |
           echo "Parsing QML files for id and objectName changes..."
           ids=""
           object_names=""
+          delimiter=$'__EOF__'
           for file in ${qml_files}; do
             if [ $(git diff --name-status origin/main | grep -E "^[A]\s+$file$" | wc -l) -ne 0 ]; then
               # File is newly added, parse entire file
@@ -47,10 +119,10 @@ jobs:
               file_object_names=$(git diff origin/main -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^+\s*objectName\s*:\s*//')
             fi
             if [ ! -z "$file_ids" ]; then
-              ids="${ids}${file}:\n\n${file_ids}\n\n"
+              ids="${ids}${file}:${delimiter}${file_ids}${delimiter}${delimiter}"
             fi
             if [ ! -z "$file_object_names" ]; then
-              object_names="${object_names}${file}:\n\n${file_object_names}\n\n"
+              object_names="${object_names}${file}:${delimiter}${file_object_names}${delimiter}${delimiter}"
             fi
           done
           echo "ids<<EOF" >> $GITHUB_ENV
@@ -68,8 +140,8 @@ jobs:
           IDS: ${{ env.ids }}
         with:
           script: |
-            const ids = process.env.IDS;
-            if (ids && ids.trim()) {
+            const ids = process.env.IDS.split('__EOF__').join('\n').trim();
+            if (ids) {
               const comment = `Changed QML ids:\n${ids}`;
               github.issues.createComment({
                 issue_number: context.issue.number,
@@ -87,8 +159,8 @@ jobs:
           OBJECT_NAMES: ${{ env.object_names }}
         with:
           script: |
-            const objectNames = process.env.OBJECT_NAMES;
-            if (objectNames && objectNames.trim()) {
+            const objectNames = process.env.OBJECT_NAMES.split('__EOF__').join('\n').trim();
+            if (objectNames) {
               const comment = `Changed QML objectNames:\n${objectNames}`;
               github.issues.createComment({
                 issue_number: context.issue.number,
@@ -99,69 +171,7 @@ jobs:
             } else {
               console.log("No objectName changes found.");
             }
-
-
-
-
-
-
-      # - name: Parse QML files for changes
-      #   id: parse-qml
-      #   run: |
-      #     echo "Parsing QML files for id and objectName changes..."
-      #     ids_and_names=""
-      #     for file in ${qml_files}; do
-      #       if [ $(git diff --name-status origin/main | grep -E "^[A]\s+$file$" | wc -l) -ne 0 ]; then
-      #         # File is newly added, parse entire file
-      #         ids=$(grep -E '^\s*id\s*:' "$file" | sed 's/^\s*id\s*:\s*//')
-      #         object_names=$(grep -E '^\s*objectName\s*:' "$file" | sed 's/^\s*objectName\s*:\s*//')
-      #       else
-      #         # File is modified, parse diff
-      #         ids=$(git diff origin/main -- "$file" | grep -E '^\+\s*id\s*:' | sed 's/^+\s*id\s*:\s*//')
-      #         object_names=$(git diff origin/main -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^+\s*objectName\s*:\s*//')
-      #       fi
-      #       if [ ! -z "$ids" ] || [ ! -z "$object_names" ]; then
-      #         ids_and_names="${ids_and_names}${file}:\nids:\n${ids}\nobjectNames:\n${object_names}\n\n"
-      #       fi
-      #     done
-      #     echo -e "${ids_and_names}" > ids_and_names.txt
-      #     echo "ids_and_names_file=ids_and_names.txt" >> $GITHUB_ENV
-      #     echo "Changed ids_and_names: ${ids_and_names}"
-
-
-      # - name: Parse QML files for changes
-      #   id: parse-qml
-      #   run: |
-      #     echo "Parsing QML files for id and objectName changes..."
-      #     ids_and_names=""
-      #     for file in ${qml_files}; do
-      #       ids=$(git diff HEAD~1 HEAD -- "$file" | grep -E '^\+\s*id\s*:' | sed 's/^+\s*id\s*:\s*//')
-      #       object_names=$(git diff HEAD~1 HEAD -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^+\s*objectName\s*:\s*//')
-      #       if [ ! -z "$ids" ] || [ ! -z "$object_names" ]; then
-      #         ids_and_names=$"{ids_and_names}\n$file:\nids:\n${ids}\nobjectNames:\n${object_names}\n"
-      #       fi
-      #     done
-      #     echo "ids_and_names=${ids_and_names}" >> $GITHUB_ENV
-      #     echo "Changed ids and names: ${ids_and_names}"
-
- 
-      # - name: Post PR comment
-      #   uses: actions/github-script@v3
-      #   with:
-      #     script: |
-      #       const ids_and_names = process.env.ids_and_names;
-      #       if (ids_and_names) {
-      #         const comment = `Changed QML files and their ids and objectNames:\n${ids_and_names}`;
-      #         github.issues.createComment({
-      #           issue_number: context.issue.number,
-      #           owner: context.repo.owner,
-      #           repo: context.repo.repo,
-      #           body: comment
-      #         });
-      #       } else {
-      #         console.log("No id or objectName changes found.");
-      #       }
-
+      
       - name: Find changed C++ files
         id: find-files
         run: |
