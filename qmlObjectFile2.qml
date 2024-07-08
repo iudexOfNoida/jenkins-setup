@@ -160,6 +160,18 @@ CustomPopUp {
 
 
                     }
+					CustomText{
+                        id: NewIdNotPresentBefore
+                        objectName: "NewobjNotPresentBefore"
+                        text: Constants.objStaticKey.strRename + " " + Constants.objStaticKey.strGroup
+                        font.pixelSize: fullHDScale(Constants.objStaticValue.m_iMediumFontSize)
+                        opacity: 1
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.leftMargin: fullHDScale(10)
+
+
+                    }
                     MouseArea{
                         anchors.fill: parent
                         hoverEnabled: true
