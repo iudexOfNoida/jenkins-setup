@@ -167,8 +167,8 @@ jobs:
           done
           echo "id_changes=${id_changes}" >> $GITHUB_ENV
           echo "object_name_changes=${object_name_changes}" >> $GITHUB_ENV
-          echo "------------------------ID Changes-----------------------${id_changes}"
-          echo ""-------------------ObjectName Changes-------------------${object_name_changes}"
+          echo "-----------------------ID Changes-----------------------${id_changes}"
+          echo "-------------------ObjectName Changes-------------------${object_name_changes}"
 
       - name: Find changed C++ files
         id: find-files
