@@ -102,7 +102,7 @@ CustomPopUp {
                 }
 
                 Rectangle{
-                    id : objDuplicateRect
+                    id : objDuplicateRect12345
                     objectName: "objDuplicateRect"
                     width: fullHDScale(248)
                     height: fullHDScale(28)
@@ -112,7 +112,7 @@ CustomPopUp {
 
                     CustomText{
                         id: objDestGrpDuplicate
-                        objectName: "objDestGrpDuplicate"
+                        objectName: "objDestGrpDuplicateChanged"
                         text: qsTr("Duplicate") + ctxWindowsMgrUi.emptyString + " " + Constants.objStaticKey.strGroup
                         font.pixelSize: fullHDScale(Constants.objStaticValue.m_iMediumFontSize)
                         opacity: enabled ? 1 : 0.5
@@ -141,7 +141,7 @@ CustomPopUp {
 
                 Rectangle{
                     id : objRenameRect
-                    objectName: "objRenameRect"
+                    objectName: "objRenameRectChanged"
                     width: fullHDScale(248)
                     height: fullHDScale(28)
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -151,6 +151,18 @@ CustomPopUp {
                     CustomText{
                         id: objDestGrpRename
                         objectName: "objDestGrpRename"
+                        text: Constants.objStaticKey.strRename + " " + Constants.objStaticKey.strGroup
+                        font.pixelSize: fullHDScale(Constants.objStaticValue.m_iMediumFontSize)
+                        opacity: 1
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        anchors.leftMargin: fullHDScale(10)
+
+
+                    }
+					CustomText{
+                        id: NewIdNotPresentBefore
+                        objectName: "NewobjNotPresentBefore"
                         text: Constants.objStaticKey.strRename + " " + Constants.objStaticKey.strGroup
                         font.pixelSize: fullHDScale(Constants.objStaticValue.m_iMediumFontSize)
                         opacity: 1

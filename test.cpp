@@ -1,14 +1,8 @@
 #include <iostream>
 
 void createMemoryLeak() {
-    // Allocate memory for an integer
     int a =5;
-
-
-    // Normally, we would delete the allocated memory
-    // delete leakyInt;
     std::cout<<a<<std::endl;
-    // Because we do not delete it, we have a memory leak
 }
 
 int main() {
