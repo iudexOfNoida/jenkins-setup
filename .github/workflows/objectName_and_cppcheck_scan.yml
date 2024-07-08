@@ -151,14 +151,12 @@ jobs:
             ${file}: 
             Modified id --> ${new_id}
             "
-                done
               done
             for new_object_name in $new_object_names; do
               object_name_changes="${object_name_changes}
           ${file}: 
           $Modified objectName --> ${new_object_name}
           "
-                done
               done
             fi
           done
