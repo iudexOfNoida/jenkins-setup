@@ -129,13 +129,13 @@ jobs:
               for id in $new_ids; do
                 id_changes="${id_changes}
             ${file}: 
-            newly created file --> ${id}
+            Newly file --> ${id}
             "
               done
               for object_name in $new_object_names; do
                 object_name_changes="${object_name_changes}
             ${file}: 
-            newly created file --> ${object_name}
+            Newly file --> ${object_name}
             "
               done
             else
@@ -146,18 +146,18 @@ jobs:
               new_object_names=$(git diff origin/main -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^\+*\s*objectName\s*:\s*//')
 
               
-              for new_id in $new_ids; do
-                id_changes="${id_changes}
-            ${file}: 
-            Modified id --> ${new_id}
-            "
-              done
+            for new_id in $new_ids; do
+              id_changes="${id_changes}
+          ${file}: 
+          Modified id --> ${new_id}
+          "
+            done
             for new_object_name in $new_object_names; do
               object_name_changes="${object_name_changes}
           ${file}: 
-          $Modified objectName --> ${new_object_name}
+          Modified objectName --> ${new_object_name}
           "
-              done
+            done
             fi
           done
           # echo "id_changes=${id_changes}" >> $GITHUB_ENV
