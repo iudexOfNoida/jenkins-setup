@@ -84,44 +84,6 @@
 #           cppcheck --enable=all --error-exitcode=1 --force --inline-suppr --quiet ${cpp_files}
 
 
-#       # - name: Post PR comment for ids
-#       #   uses: actions/github-script@v3
-#       #   env:
-#       #     IDS: ${{ env.ids }}
-#       #   with:
-#       #     script: |
-#       #       const ids = process.env.IDS.split('__EOF__').join('\n').trim();
-#       #       if (ids) {
-#       #         const comment = `Changed QML ids:\n${ids}`;
-#       #         github.issues.createComment({
-#       #           issue_number: context.issue.number,
-#       #           owner: context.repo.owner,
-#       #           repo: context.repo.repo,
-#       #           body: comment
-#       #         });
-#       #       } else {
-#       #         console.log("No id changes found.");
-#       #       }
-
-#       # - name: Post PR comment for objectNames
-#       #   uses: actions/github-script@v3
-#       #   env:
-#       #     OBJECT_NAMES: ${{ env.object_names }}
-#       #   with:
-#       #     script: |
-#       #       const objectNames = process.env.OBJECT_NAMES.split('__EOF__').join('\n').trim();
-#       #       if (objectNames) {
-#       #         const comment = `Changed QML objectNames:\n${objectNames}`;
-#       #         github.issues.createComment({
-#       #           issue_number: context.issue.number,
-#       #           owner: context.repo.owner,
-#       #           repo: context.repo.repo,
-#       #           body: comment
-#       #         });
-#       #       } else {
-#       #         console.log("No objectName changes found.");
-#       #       }
-
 
 name: objectName and cppcheck scan
 
@@ -165,10 +127,18 @@ jobs:
               new_ids=$(grep -E '^\s*id\s*:' "$file" | sed 's/^\s*id\s*:\s*//')
               new_object_names=$(grep -E '^\s*objectName\s*:' "$file" | sed 's/^\s*objectName\s*:\s*//')
               for id in $new_ids; do
-                id_changes="${id_changes}${file}: newly created --> ${id}\n"
+                id_changes="${id_changes}
+            ${file}: 
+            newly created --> ${id}
+            
+            "
               done
               for object_name in $new_object_names; do
-                object_name_changes="${object_name_changes}${file}: newly created --> ${object_name}\n"
+                object_name_changes="${object_name_changes}
+            ${file}: 
+            newly created --> ${object_name}
+            
+            "
               done
             else
               # File is modified, parse diff
@@ -179,20 +149,26 @@ jobs:
 
               for old_id in $old_ids; do
                 for new_id in $new_ids; do
-                  id_changes="${id_changes}${file}: ${old_id} --> ${new_id}\n"
+                  id_changes="${id_changes}
+              ${file}: 
+              ${old_id} --> ${new_id}"
                 done
               done
               for old_object_name in $old_object_names; do
                 for new_object_name in $new_object_names; do
-                  object_name_changes="${object_name_changes}${file}: ${old_object_name} --> ${new_object_name}\n"
+                  object_name_changes="${object_name_changes}
+              ${file}: 
+              ${old_object_name} --> ${new_object_name}
+              
+              "
                 done
               done
             fi
           done
           echo "id_changes=${id_changes}" >> $GITHUB_ENV
           echo "object_name_changes=${object_name_changes}" >> $GITHUB_ENV
-          echo "ID Changes: ${id_changes}"
-          echo "ObjectName Changes: ${object_name_changes}"
+          echo "------------------------ID Changes-----------------------${id_changes}"
+          echo ""-------------------ObjectName Changes-------------------${object_name_changes}"
 
       - name: Find changed C++ files
         id: find-files
@@ -207,44 +183,6 @@ jobs:
         run: |
           echo "Running cppcheck on modified files..."
           cppcheck --enable=all --error-exitcode=1 --force --inline-suppr --quiet ${cpp_files}
-
-      - name: Post PR comment for id changes
-        uses: actions/github-script@v3
-        env:
-          ID_CHANGES: ${{ env.id_changes }}
-        with:
-          script: |
-            const idChanges = process.env.ID_CHANGES.trim();
-            if (idChanges) {
-              const comment = `Changed QML ids:\n${idChanges}`;
-              github.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: comment
-              });
-            } else {
-              console.log("No id changes found.");
-            }
-
-      - name: Post PR comment for objectName changes
-        uses: actions/github-script@v3
-        env:
-          OBJECT_NAME_CHANGES: ${{ env.object_name_changes }}
-        with:
-          script: |
-            const objectNameChanges = process.env.OBJECT_NAME_CHANGES.trim();
-            if (objectNameChanges) {
-              const comment = `Changed QML objectNames:\n${objectNameChanges}`;
-              github.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: comment
-              });
-            } else {
-              console.log("No objectName changes found.");
-            }
 
 
 
