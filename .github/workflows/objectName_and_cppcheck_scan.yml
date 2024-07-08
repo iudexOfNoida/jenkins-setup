@@ -129,15 +129,13 @@ jobs:
               for id in $new_ids; do
                 id_changes="${id_changes}
             ${file}: 
-            newly created --> ${id}
-            
+            newly created file --> ${id}
             "
               done
               for object_name in $new_object_names; do
                 object_name_changes="${object_name_changes}
             ${file}: 
-            newly created --> ${object_name}
-            
+            newly created file --> ${object_name}
             "
               done
             else
@@ -147,21 +145,19 @@ jobs:
               old_object_names=$(git diff origin/main -- "$file" | grep -E '^-\s*objectName\s*:' | sed 's/^-*\s*objectName\s*:\s*//')
               new_object_names=$(git diff origin/main -- "$file" | grep -E '^\+\s*objectName\s*:' | sed 's/^\+*\s*objectName\s*:\s*//')
 
-              for old_id in $old_ids; do
-                for new_id in $new_ids; do
-                  id_changes="${id_changes}
-              ${file}: 
-              ${old_id} --> ${new_id}
-              "
+              
+              for new_id in $new_ids; do
+                id_changes="${id_changes}
+            ${file}: 
+            Modified id --> ${new_id}
+            "
                 done
               done
-              for old_object_name in $old_object_names; do
-                for new_object_name in $new_object_names; do
-                  object_name_changes="${object_name_changes}
-              ${file}: 
-              ${old_object_name} --> ${new_object_name}
-              
-              "
+            for new_object_name in $new_object_names; do
+              object_name_changes="${object_name_changes}
+          ${file}: 
+          $Modified objectName --> ${new_object_name}
+          "
                 done
               done
             fi
